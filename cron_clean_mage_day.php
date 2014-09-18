@@ -1,5 +1,7 @@
 <?php
 
+// Author : Alex Sbille
+
 function clean_log_tables() {
     global $db;
     $tables = array(
@@ -67,9 +69,6 @@ foreach ($lines as $value) {
 
 if(file_exists($value)) {
 
-    
-    // /home/ftp/cust_a89/dev/app/etc/local.xml
-	
 $magento_dir = explode("app/etc/local.xml", $value);
 //echo $magento_dir[0];
 echo '---'.$magento_dir[0]."\n";
