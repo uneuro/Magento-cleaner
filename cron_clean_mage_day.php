@@ -22,8 +22,6 @@ function clean_log_tables() {
 	'report_event',
 	'report_viewed_product_index',
 	'report_compared_product_index',
-	'report_event',
-	'report_compared_product_index',
 	'catalog_compare_item',
 	'catalogindex_aggregation',
 	'catalogindex_aggregation_tag',
