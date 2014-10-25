@@ -2,6 +2,8 @@
 
 // Author : Alex Sbille
 
+$parsed_magento_folders='';
+
 function clean_log_tables() {
     global $db;
     $tables = array(
@@ -56,7 +58,6 @@ function clean_var_directory($magento_dir) {
 
 $lines = shell_exec('find /home/ -maxdepth 6 -path \'*/app/etc/*\' -name \'local.xml\'  | xargs grep -l "Magento" > /tmp/listmagento.tmp');
 $lines = file('/tmp/listmagento.tmp', FILE_IGNORE_NEW_LINES);
-print($lines);
 foreach ($lines as $value) {
 if(file_exists($value)) {
 
