@@ -29,13 +29,32 @@ function clean_log_tables() {
         'catalogindex_aggregation_tag',
         'catalogindex_aggregation_to_tag'
         );
+
+
+        try {
+            $dbh = new PDO('mysql:host='.$db['host'].';port=3306;dbname='.$db['name'], $db['user'], $db['pass'], array( PDO::ATTR_PERSISTENT => false));
+            foreach($tables as $v => $k) {
+                echo "Running ".'TRUNCATE `'.$db['pref'].$k.'`'."...\n";
+                $stmt = $dbh->prepare('TRUNCATE `'.$db['pref'].$k.'`');
+                $stmt->execute();
+                var_dump($stmt);
+                echo date("r")."\n";
+            }
+    
+    } catch (PDOException $e) {
+        print "Error!: " . $e->getMessage() . "\n";
+        //die();
+    }
+
+
+        /*
         mysql_connect($db['host'], $db['user'], $db['pass']) or die(mysql_error());
         mysql_select_db($db['name']) or die(mysql_error());
         foreach($tables as $v => $k) {
             echo 'Query for dbname'.$db['name'].' : TRUNCATE `'.$db['pref'].$k.'`'."\n";
             $result = mysql_query('TRUNCATE `'.$db['pref'].$k.'`') or print(mysql_error());
             echo $result."\n";
-        }
+        }*/
 }
 
 function clean_var_directory($magento_dir) {
