@@ -2,6 +2,12 @@
 
 // Author : Alex Sbille
 
+//Choose level of cleaning
+$log_rotate_magento_app_logs = '1';
+$clean_magento_reports = '1';
+$clean_magento_sessions_files = '1';
+$clean_magento_log_php = '1';
+
 $parsed_magento_folders='';
 
 function clean_log_tables() {
@@ -81,7 +87,7 @@ function clean_var_log_directory($magento_dir){
             fwrite($logrotate_mage_file, $txt);
             fclose($logrotate_mage_file);
             
-            echo exec("find ".$magento_dir."/var/report -type f -mmin +2500 -delete");
+            echo exec("logrotate -f /tmp/magento-logrotate.conf");
         }
 }
 
@@ -110,16 +116,25 @@ echo "\n \n--- Got another Magento website to clean ".$magento_dir[0]."\n";
         $db['pass'] = $connection->password[0];
         $db['pref'] = $connection->table_prefix[0];
 
-        // Verify
+        // Verify and run
         if(is_dir($magento_dir[0].'/var/session')){
         $parsed_magento_folders++;
-        echo exec("find ".$magento_dir[0]."/var/session -type f -mmin +600 -delete");
-        echo "Call clean_log_tables() \n";
-        clean_log_tables();
-        echo "Call clean_var_directory(".$magento_dir[0].") \n";
-        clean_var_report_directory($magento_dir[0]);
-
-        if(is_file($magento_dir[0].'/shell/log.php')){
+        if($clean_magento_sessions_files == '1'){
+            echo "Call clean session files \n"
+            echo exec("find ".$magento_dir[0]."/var/session -type f -mmin +600 -delete");
+        }
+            echo "Call clean_log_tables() \n";
+            clean_log_tables();
+        if($clean_magento_reports == '1'){
+            echo "Call clean_var_directory(".$magento_dir[0].") \n";
+            clean_var_report_directory($magento_dir[0]);
+        }
+        if($log_rotate_magento_app_logs == '1'){
+            echo "Call clean_var_log_directory(".$magento_dir[0].") \n";
+            clean_var_log_directory($magento_dir[0]);
+        }
+            
+        if(is_file($magento_dir[0].'/shell/log.php') and $clean_magento_log_php == '1'){
             echo " log.php exists \n";
             echo exec("php -q ".$magento_dir[0]."/shell/log.php clean status")."\n";
             echo exec("php -q ".$magento_dir[0]."/shell/log.php clean --days 1")."\n";
