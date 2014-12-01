@@ -57,23 +57,35 @@ function clean_log_tables() {
         }*/
 }
 
-function clean_var_directory($magento_dir) {
-        if(empty($magento_dir)){echo 'empty magento_dir!'; exit();}
-        $dirs = array(
-        $magento_dir.'var/log/',
-        $magento_dir.'var/report/'
-        );
-
-        foreach($dirs as $v => $k) {
-            if(empty($k)){
-                echo 'empty $k'; exit();
-            }
-            else{
-                echo'deleted'.$k."\n";
-                exec('rm -rf '.$k.'/*');
-            }
+//Clean only old reports
+function clean_var_report_directory($magento_dir){
+        if(is_dir($magento_dir.'/var/report')){
+            echo exec("find ".$magento_dir."/var/report -type f -mmin +2500 -delete");
         }
 }
+
+//Logrotate of magento logs
+function clean_var_log_directory($magento_dir){
+        if(is_dir($magento_dir.'/var/log')){
+            
+            $logrotate_mage_file = fopen("/tmp/logrotate_mage.conf", "w")  or die("Unable to open file!");
+            $txt = $magento_dir."/var/log/*.log {\n".
+            ."daily\n".
+            ."missingok\n".
+            ."rotate 5\n".
+            ."compress\n".
+            ."notifempty\n".
+            ."create 640 root adm\n".
+            ."sharedscripts\n";
+        
+            fwrite($logrotate_mage_file, $txt);
+            fclose($logrotate_mage_file);
+            
+            echo exec("find ".$magento_dir."/var/report -type f -mmin +2500 -delete");
+        }
+}
+
+
 
 $lines = shell_exec('find /home/ -maxdepth 6 -path \'*/app/etc/*\' -name \'local.xml\'  | xargs grep -l "Magento" > /tmp/listmagento.tmp');
 $lines = file('/tmp/listmagento.tmp', FILE_IGNORE_NEW_LINES);
@@ -105,7 +117,7 @@ echo "\n \n--- Got another Magento website to clean ".$magento_dir[0]."\n";
         echo "Call clean_log_tables() \n";
         clean_log_tables();
         echo "Call clean_var_directory(".$magento_dir[0].") \n";
-        clean_var_directory($magento_dir[0]);
+        clean_var_report_directory($magento_dir[0]);
 
         if(is_file($magento_dir[0].'/shell/log.php')){
             echo " log.php exists \n";
