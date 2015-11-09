@@ -1,13 +1,11 @@
+#!/usr/bin/php
 <?php
-
 // Author : Alex Sbille
-
 //Choose level of cleaning
 $log_rotate_magento_app_logs = '1';
 $clean_magento_reports = '1';
 $clean_magento_sessions_files = '1';
 $clean_magento_log_php = '1';
-
 $parsed_magento_folders='';
 
 function clean_log_tables() {
@@ -35,8 +33,6 @@ function clean_log_tables() {
         'catalogindex_aggregation_tag',
         'catalogindex_aggregation_to_tag'
         );
-
-
         try {
             $dbh = new PDO('mysql:host='.$db['host'].';port=3306;dbname='.$db['name'], $db['user'], $db['pass'], array( PDO::ATTR_PERSISTENT => false));
             foreach($tables as $v => $k) {
@@ -51,8 +47,6 @@ function clean_log_tables() {
         print "Error!: " . $e->getMessage() . "\n";
         //die();
     }
-
-
         /*
         mysql_connect($db['host'], $db['user'], $db['pass']) or die(mysql_error());
         mysql_select_db($db['name']) or die(mysql_error());
@@ -73,37 +67,41 @@ function clean_var_report_directory($magento_dir){
 //Logrotate of magento logs
 function clean_var_log_directory($magento_dir){
         if(is_dir($magento_dir.'/var/log')){
-            
+
             $logrotate_mage_file = fopen("/tmp/logrotate_mage.conf", "w")  or die("Unable to open file!");
-            $txt = $magento_dir."/var/log/*.log {\n".
-            ."daily\n".
-            ."missingok\n".
-            ."rotate 5\n".
-            ."compress\n".
-            ."notifempty\n".
-            ."create 640 root adm\n".
-            ."sharedscripts\n";
-        
+            $txt = $magento_dir."var/log/*.log {\n"
+            ."daily\n"
+            ."missingok\n"
+            ."rotate 5\n"
+            ."compress\n"
+            ."notifempty\n"
+            ."create 640 www-data www-data\n"
+            ."su www-data www-data\n"
+            ."sharedscripts\n}";
+
             fwrite($logrotate_mage_file, $txt);
             fclose($logrotate_mage_file);
-            
-            echo exec("logrotate -f /tmp/magento-logrotate.conf");
+
+            echo exec("/usr/sbin/logrotate -f /tmp/logrotate_mage.conf");
         }
 }
 
+//$lines = shell_exec('find /home/ -maxdepth 7 -path \'*/app/etc/*\' -name \'local.xml\'  | grep magento > /tmp/listmagento.tmp');
+//$lines = file('/tmp/listmagento.tmp', FILE_IGNORE_NEW_LINES);
+exec('find /home/ -maxdepth 7 -path \'*/app/etc/*\' -name \'local.xml\'  | grep magento',$lines);
 
-
-$lines = shell_exec('find /home/ -maxdepth 6 -path \'*/app/etc/*\' -name \'local.xml\'  | xargs grep -l "Magento" > /tmp/listmagento.tmp');
-$lines = file('/tmp/listmagento.tmp', FILE_IGNORE_NEW_LINES);
 foreach ($lines as $value) {
-if(file_exists($value)) {
 
+// For Testing...
+//if ($value !='/home/ftp/fm_587/magento/htdocs/app/etc/local.xml') continue;
+
+if(file_exists($value)) {
 $magento_dir = explode("app/etc/local.xml", $value);
 echo "\n \n--- Got another Magento website to clean ".$magento_dir[0]."\n";
-
     // Load in the local.xml and retrieve the database settings
     $xml = simplexml_load_file($value);
     if(isset($xml->global->resources->default_setup->connection)) {
+
         $connection = $xml->global->resources->default_setup->connection;
         echo 'Host : '.$connection->host[0]."\n";
         echo 'Dbname : '.$connection->dbname[0]."\n";
@@ -116,36 +114,44 @@ echo "\n \n--- Got another Magento website to clean ".$magento_dir[0]."\n";
         $db['pass'] = $connection->password[0];
         $db['pref'] = $connection->table_prefix[0];
 
+        // Verify mysql connection
+        try {
+            $dbh = new PDO('mysql:host='.$db['host'].';port=3306;dbname='.$db['name'], $db['user'], $db['pass'], array( PDO::ATTR_PERSISTENT => false));
+        } catch (PDOException $e) {
+            print "Connect to MYSQL Error: !: " . $e->getMessage() . "\n";
+            continue;
+        }
+
         // Verify and run
         if(is_dir($magento_dir[0].'/var/session')){
         $parsed_magento_folders++;
+
         if($clean_magento_sessions_files == '1'){
-            echo "Call clean session files \n"
+            echo "Call clean session files \n";
             echo exec("find ".$magento_dir[0]."/var/session -type f -mmin +600 -delete");
         }
-            echo "Call clean_log_tables() \n";
-            clean_log_tables();
+
+        echo "Call clean_log_tables() \n";
+        clean_log_tables();
+
         if($clean_magento_reports == '1'){
             echo "Call clean_var_directory(".$magento_dir[0].") \n";
             clean_var_report_directory($magento_dir[0]);
         }
+
         if($log_rotate_magento_app_logs == '1'){
             echo "Call clean_var_log_directory(".$magento_dir[0].") \n";
             clean_var_log_directory($magento_dir[0]);
         }
-            
         if(is_file($magento_dir[0].'/shell/log.php') and $clean_magento_log_php == '1'){
             echo " log.php exists \n";
             echo exec("php -q ".$magento_dir[0]."/shell/log.php clean status")."\n";
             echo exec("php -q ".$magento_dir[0]."/shell/log.php clean --days 1")."\n";
             echo exec("php -q ".$magento_dir[0]."/shell/log.php clean status")."\n"."\n";
-        }}
-        else {
-            echo "\n ! ".$magento_dir[0].'/var/session doesnt exists'."\n";
         }
     }
-    } else {
-    die('Unable to load Magento local xml File');
-}}
+        else echo "\n ! ".$magento_dir[0].'/var/session doesnt exists'."\n";
+    }
+    } else die('Unable to load Magento local xml File');
+}
 echo "\n End of script, parsed ".$parsed_magento_folders." magento folders.";
-?>
