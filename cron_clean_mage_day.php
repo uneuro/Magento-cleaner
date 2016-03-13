@@ -67,7 +67,23 @@ function clean_var_log_directory($magento_dir)
     if (is_dir($magento_dir . '/var/log')) {
         
         $logrotate_mage_file = fopen("/tmp/logrotate_mage.conf", "w") or die("Unable to open file!");
-        $txt = $magento_dir . "var/log/*.log {\n" . "daily\n" . "missingok\n" . "rotate 5\n" . "compress\n" . "notifempty\n" . "nocreate\n" . "su www-data www-data\n" . "sharedscripts\n}";
+        $txt = $magento_dir . "var/log/*.log {\n" .
+        "daily\n" .
+        "missingok\n" .
+        "rotate 5\n" .
+        "compress\n" .
+        "compresscmd /bin/bzip2\n" .
+        "compressoptions -9\n" .
+        "compressext .bz2\n" .
+        "uncompresscmd /bin/bunzip2\n" .
+        "notifempty\n" .
+        "nocreate\n" .
+        "su www-data www-data\n".
+        "nosharedscripts\n".
+        "prerotate\n".
+        "  bash -c \"[[ ! $1 =~ logistics ]] && [[ ! $1 =~ ph2m ]] && [[ ! $1 =~ norotate ]]\"\n".
+        "endscript\n".
+        "}";
         
         fwrite($logrotate_mage_file, $txt);
         fclose($logrotate_mage_file);
@@ -117,7 +133,7 @@ foreach ($lines as $value) {
                 
                 if ($clean_magento_sessions_files == '1') {
                     echo "Call clean session files \n";
-                    echo exec("find " . $magento_dir[0] . "/var/session -type f -mmin +600 -delete");
+                    echo exec("find " . $magento_dir[0] . "/var/session -type f -mmin +500 -delete");
                 }
                 
                 echo "Call clean_log_tables() \n";
