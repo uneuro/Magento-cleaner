@@ -16,7 +16,7 @@ Magento-cleaner
 
 Launch it with php cli on a terminal with:
 
-#php /path/to/file/cron_clean_mage_day.php
+php /path/to/file/cron_clean_mage_day.php
 
 Add cron task like:
 
