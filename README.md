@@ -26,3 +26,5 @@ Add cron task like:
 
   - Add compatibility with Magento2
   - Collect statistics / generate nice report.
+  - Add foreach exluded logrotate a specific logrotate of 1 year
+  - Detect vars from external data like a file configuration in app/etc/
