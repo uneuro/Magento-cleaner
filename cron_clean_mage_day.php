@@ -78,7 +78,6 @@ function clean_var_log_directory($magento_dir)
         "uncompresscmd /bin/bunzip2\n" .
         "notifempty\n" .
         "nocreate\n" .
-        "su www-data www-data\n".
         "nosharedscripts\n".
         "prerotate\n".
         "  bash -c \"[[ ! $1 =~ logistics ]] && [[ ! $1 =~ ph2m ]] && [[ ! $1 =~ norotate ]]\"\n".
