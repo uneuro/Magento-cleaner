@@ -1,6 +1,8 @@
 Magento-cleaner
 ===============
 
+###This module has never been used in production.
+
   - Find all magento installed under /home/ or /var/www/ with a maxdepth to 7
 
   - Parse app/etc/local.xml for get database credentials, db prefix and custom settings
