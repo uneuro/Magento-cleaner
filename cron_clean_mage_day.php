@@ -1,11 +1,22 @@
 <?php
 
-//Choose level of cleaning
-$log_rotate_magento_app_logs  = '1';
-$clean_magento_reports        = '1';
-$clean_magento_sessions_files = '1';
-$clean_magento_log_php        = '1';
-$parsed_magento_folders       = '';
+// https://github.com/1pulse/Magento-cleaner/
+
+//  Defaults settings / level of cleaning
+//  Settings in */app/etc/local.xml overwrite this
+//  Only integers
+
+$log_rotate_magento_app_logs         = '1';   // 0 or 1
+$clean_magento_reports               = '1';   // 0 or 1
+$clean_magento_sessions_files        = '1';   // 0 or 1
+$log_rotate_magento_app_logs_days    = '10';  //setting of logs days to keep
+$clean_magento_log_php               = '1';   // 0 or 1
+$clean_magento_reports_days          = '2';   //setting of var/repports to keep in days
+$clean_magento_sessions_files_minuts = '500'; //setting of var/session/{sess_files} to keep in minuts
+
+
+$parsed_magento_folders       = ''; //For stats and repport
+
 
 function clean_log_tables()
 {
@@ -53,16 +64,16 @@ function clean_log_tables()
     
 }
 
-//Clean only old reports
-function clean_var_report_directory($magento_dir)
+//Clean only old reports of x days
+function clean_var_report_directory($magento_dir,$days)
 {
     if (is_dir($magento_dir . '/var/report')) {
-        echo exec("find " . $magento_dir . "/var/report -type f -mmin +2500 -delete");
+        echo exec("find " . $magento_dir . "/var/report -type f -mtime +".$days." -delete");
     }
 }
 
 //Logrotate of magento logs
-function clean_var_log_directory($magento_dir)
+function clean_var_log_directory($magento_dir,$days)
 {
     if (is_dir($magento_dir . '/var/log')) {
         
@@ -70,7 +81,7 @@ function clean_var_log_directory($magento_dir)
         $txt = $magento_dir . "var/log/*.log {\n" .
         "daily\n" .
         "missingok\n" .
-        "rotate 5\n" .
+        "rotate ".$days."\n" .
         "compress\n" .
         "compresscmd /bin/bzip2\n" .
         "compressoptions -9\n" .
@@ -98,23 +109,71 @@ foreach ($lines as $value) {
     
     if (file_exists($value)) {
         $magento_dir = explode("app/etc/local.xml", $value);
-        echo "\n \n--- Got another Magento website to clean " . $magento_dir[0] . "\n";
+        echo "\n- Got another Magento website to clean " . $magento_dir[0] . ":";
         // Load in the local.xml and retrieve the database settings
         $xml = simplexml_load_file($value);
         if (isset($xml->global->resources->default_setup->connection)) {
-            
+
+            //Get default settings
+            $conf['log_rotate_magento_app_logs'] = $log_rotate_magento_app_logs;
+            $conf['clean_magento_reports'] = $clean_magento_reports ;
+            $conf['clean_magento_sessions_files'] = $clean_magento_sessions_files;
+            $conf['log_rotate_magento_app_logs_days'] = $log_rotate_magento_app_logs_days;
+            $conf['clean_magento_log_php'] = $clean_magento_log_php;
+            $conf['clean_magento_reports_days'] = $clean_magento_reports_days;
+            $conf['clean_magento_sessions_files_minuts'] = $clean_magento_sessions_files_minuts;
+
+
+            //Get Database settings
             $connection = $xml->global->resources->default_setup->connection;
-            echo 'Host : ' . $connection->host[0] . "\n";
-            echo 'Dbname : ' . $connection->dbname[0] . "\n";
-            echo 'Username : ' . $connection->username[0] . "\n";
-            echo 'Pwd : ' . $connection->password[0] . "\n";
-            echo 'Prefix : ' . $connection->table_prefix[0] . "\n";
             $db['host'] = $connection->host[0];
             $db['name'] = $connection->dbname[0];
             $db['user'] = $connection->username[0];
             $db['pass'] = $connection->password[0];
             $db['pref'] = $connection->table_prefix[0];
-            
+
+            //Get Cleaner settings in magento/app/etc/local.xml / try to get custom settings
+            $config = $xml->magentocleaner;
+
+            if ($config->log_rotate_magento_app_logs[0] == '1' or $config->log_rotate_magento_app_logs[0] == '0'){
+              $conf['log_rotate_magento_app_logs'] = $config->log_rotate_magento_app_logs[0];
+            }
+            if ($config->clean_magento_reports[0] == '1' or $config->clean_magento_reports[0] == '0'){
+              $conf['clean_magento_reports'] = $config->clean_magento_reports[0];
+            }
+            if ($config->clean_magento_sessions_files[0] == '1' or $config->clean_magento_sessions_files[0] == '0'){
+              $conf['clean_magento_sessions_files'] = $config->clean_magento_sessions_files[0];
+            }
+            if (is_int ($config->log_rotate_magento_app_logs_days[0])){
+              $conf['log_rotate_magento_app_logs_days'] = $config->log_rotate_magento_app_logs_days[0];
+            }
+            if ($config->clean_magento_log_php[0] == '1' or $config->clean_magento_log_php[0] == '0'){
+              $conf['clean_magento_log_php'] = $config->clean_magento_log_php[0];
+            }
+            if (is_int ($config->clean_magento_reports_days[0])){
+              $conf['clean_magento_reports_days'] = $config->clean_magento_reports_days[0];
+            }
+            if (is_int ($config->clean_magento_sessions_files_minuts[0])){
+              $conf['clean_magento_sessions_files_minuts'] = $config->clean_magento_sessions_files_minuts[0];
+            }
+
+            echo "\n  - Settings and environment: \n";
+            echo '    - Number of magento folders already parsed: ' . $parsed_magento_folders . "\n";
+            echo '    - Host : ' . $connection->host[0] . "\n";
+            echo '    - Dbname : ' . $connection->dbname[0] . "\n";
+            echo '    - Username : ' . $connection->username[0] . "\n";
+            echo '    - Pwd : ' . $connection->password[0] . "\n";
+            echo '    - Prefix : ' . $connection->table_prefix[0] . "\n";
+            echo '    - Log rotate_of logs : ' . $conf['log_rotate_magento_app_logs'] . "\n";
+            echo '    - Days of the log rotate : ' . $conf['log_rotate_magento_app_logs_days'] . "\n";
+            echo '    - Clean reports : ' . $conf['clean_magento_reports'] . "\n";
+            echo '    - Clean reports after days : ' . $conf['clean_magento_reports_days'] . "\n";
+            echo '    - Clean sessions files : ' . $conf['clean_magento_sessions_files'] . "\n";
+            echo '    - Clean sessions files after minuts : ' . $conf['clean_magento_sessions_files_minuts'] . "\n";
+            echo '    - Using shell/log.php : ' . $conf['clean_magento_log_php'] . "\n\n";
+
+
+
             // Verify mysql connection
             try {
                 $dbh = new PDO('mysql:host=' . $db['host'] . ';port=3306;dbname=' . $db['name'], $db['user'], $db['pass'], array(
@@ -130,25 +189,25 @@ foreach ($lines as $value) {
             if (is_dir($magento_dir[0] . '/var/session')) {
                 $parsed_magento_folders++;
                 
-                if ($clean_magento_sessions_files == '1') {
+                if ($conf['clean_magento_sessions_files'] == '1') {
                     echo "Call clean session files \n";
-                    echo exec("find " . $magento_dir[0] . "/var/session -type f -mmin +500 -delete");
+                    echo exec("find " . $magento_dir[0] . "/var/session -type f -mmin +".$conf['clean_magento_sessions_files_minuts']." -delete");
                 }
                 
                 echo "Call clean_log_tables() \n";
                 clean_log_tables();
                 
-                if ($clean_magento_reports == '1') {
-                    echo "Call clean_var_directory(" . $magento_dir[0] . ") \n";
-                    clean_var_report_directory($magento_dir[0]);
+                if ($conf['clean_magento_reports'] == '1') {
+                    echo "Call clean_var_directory(" . $magento_dir[0] . " with param ".$conf['clean_magento_reports_days']." days) \n";
+                    clean_var_report_directory($magento_dir[0],$conf['clean_magento_reports_days']);
                 }
                 
-                if ($log_rotate_magento_app_logs == '1') {
+                if ($conf['log_rotate_magento_app_logs'] == '1') {
                     echo "Call clean_var_log_directory(" . $magento_dir[0] . ") \n";
-                    clean_var_log_directory($magento_dir[0]);
+                    clean_var_log_directory($magento_dir[0],$conf['log_rotate_magento_app_logs_days']);
                 }
                 
-                if (is_file($magento_dir[0] . '/shell/log.php') and $clean_magento_log_php == '1') {
+                if (is_file($magento_dir[0] . '/shell/log.php') and $conf['clean_magento_log_php'] == '1') {
                     echo " log.php exists \n";
                     echo exec("php -q " . $magento_dir[0] . "/shell/log.php clean status") . "\n";
                     echo exec("php -q " . $magento_dir[0] . "/shell/log.php clean --days 1") . "\n";
