@@ -13,6 +13,25 @@ Magento-cleaner
 
   - Purge only old php sessions accross custom settings
 
+#Usage
+
+Put magento/app/etc/local.xml custom settings (only integers)
+
+<config>
+    <magentocleaner>
+        <log_rotate_magento_app_logs><![CDATA[1]]></log_rotate_magento_app_logs>
+        <clean_magento_reports><![CDATA[1]]></clean_magento_reports>
+        <clean_magento_sessions_files><![CDATA[1]]></clean_magento_sessions_files>
+        <log_rotate_magento_app_logs_days><![CDATA[10]]></log_rotate_magento_app_logs_days>
+        <clean_magento_log_php><![CDATA[1]]></clean_magento_log_php>
+        <clean_magento_reports_days><![CDATA[2]]></clean_magento_reports_days>
+        <clean_magento_sessions_files_minuts><![CDATA[500]]></clean_magento_sessions_files_minuts>
+    </magentocleaner>
+    <global>
+        <install>
+            <date><![CDATA[Thu, 02 Jul 2015 14:35:15 +0000]]></date>
+        </install>
+[...]
 
 Launch it with php cli on a shell with:
 
