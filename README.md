@@ -16,7 +16,7 @@ Magento-cleaner
 #Usage
 
 Put magento/app/etc/local.xml custom settings (only integers)
-
+```xml
 <config>
     <magentocleaner>
         <log_rotate_magento_app_logs><![CDATA[1]]></log_rotate_magento_app_logs>
@@ -32,17 +32,17 @@ Put magento/app/etc/local.xml custom settings (only integers)
             <date><![CDATA[Thu, 02 Jul 2015 14:35:15 +0000]]></date>
         </install>
 [...]
-
+```
 Launch it with php cli on a shell with:
-
+```bash
 php /path/to/file/cron_clean_mage_day.php
-
+```
 Add cron task like:
-
+```
 50 07  * * *   your-php-user php /path/to/cron_clean_mage_day.php
-
+```
 Output is:
-
+```yaml
 [...]
 - Got another Magento website to clean /var/www/mysite.com/:
   - Settings and environment: 
@@ -64,7 +64,7 @@ Call clean session files
 Call clean_log_tables() 
 [...]
  End of script, parsed 2 magento folders.
-
+```
 
 
 
