@@ -72,4 +72,7 @@ Call clean_log_tables()
 
   - Add compatibility for Magento2
   - Collect statistics / generate nice report.
-  - Logrotate more somes filenames with local.xml custome settings (bash -c \"[[ ! $1 =~ logistics ]] && [[ ! $1 =~ ph2m ]] && [[ ! $1 =~ norotate ]]  )
+  - Logrotate more somes filenames with local.xml custome settings 
+```bash
+bash -c \"[[ ! $1 =~ logistics ]] && [[ ! $1 =~ ph2m ]] && [[ ! $1 =~ norotate ]]  )
+```
