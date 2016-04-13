@@ -3,6 +3,10 @@ Magento-cleaner
 
 ###This module has never been used in production.
 
+A php script for find all magento webstites in your webserver and clean them all depending on settings stored in app/etc/local.xml
+
+## Features
+
   - Find all magento installed under /home/ or /var/www/ with a maxdepth to 7
 
   - Parse app/etc/local.xml for get database credentials, db prefix and custom settings
@@ -15,7 +19,7 @@ Magento-cleaner
 
   - Purge only old php sessions accross custom settings
 
-#Usage
+##Usage
 
 Put magento/app/etc/local.xml custom settings (only integers)
 ```xml
@@ -68,9 +72,12 @@ Call clean_log_tables()
  End of script, parsed 2 magento folders.
 ```
 
+## Requirements
+- Magento Community 1.3.x, 1.9.x
+- PHP 5.3+
 
 
-#Todo
+##Todo
 
   - Add compatibility for Magento2
   - Collect statistics / generate nice report.
@@ -78,3 +85,5 @@ Call clean_log_tables()
 ```bash
 bash -c \"[[ ! $1 =~ logistics ]] && [[ ! $1 =~ ph2m ]] && [[ ! $1 =~ norotate ]]  )
 ```
+## License
+Magento-cleaner is licensed under the [MIT license](https://github.com/1pulse/Magento-cleaner/blob/master/LICENSE).
