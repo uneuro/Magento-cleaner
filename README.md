@@ -78,7 +78,7 @@ Call clean_log_tables()
 
 
 ##Todo
-
+  - Permit to choose amount of visitor logs to keep in the database
   - Add compatibility for Magento2
   - Collect statistics / generate nice report.
   - Logrotate more somes filenames with local.xml custome settings 
