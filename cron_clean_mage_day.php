@@ -76,8 +76,8 @@ function clean_var_report_directory($magento_dir,$days)
 function clean_var_log_directory($magento_dir,$days)
 {
     if (is_dir($magento_dir . '/var/log')) {
-        
-        $logrotate_mage_file = fopen("/tmp/logrotate_mage.conf", "w") or die("Unable to open file!");
+        $log_file_path = str_replace('/','_',$magento_dir);
+        $logrotate_mage_file = fopen("/tmp/logrotate_mage".$log_file_path.".conf", "w") or die("Unable to open file!");
         $txt = $magento_dir . "var/log/*.log {\n" .
         "daily\n" .
         "missingok\n" .
@@ -98,7 +98,7 @@ function clean_var_log_directory($magento_dir,$days)
         fwrite($logrotate_mage_file, $txt);
         fclose($logrotate_mage_file);
         
-        echo exec("/usr/sbin/logrotate -f /tmp/logrotate_mage.conf");
+        echo exec("/usr/sbin/logrotate -f /tmp/logrotate_mage$log_file_path.conf");
     }
 }
 
